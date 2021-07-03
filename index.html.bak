@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+	 <meta charset="UTF-8">
+ <meta http-equiv="Content-Type" content="text/html; charset=windows-874">
+        <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"
+        />
+        <title>testdemo</title>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+        <script type="text/javascript">
+            function openConnection() {
+                // uses global 'conn' object
+                if (conn.readyState === undefined || conn.readyState > 1) {
+
+                    conn = new WebSocket('ws://localhost:8100');  
+
+					conn.onclose = function (event) {
+						// Web Socket Closed
+                    };
+
+
+                    conn.onopen = function () {
+                        conn.send("Connection Established Confirmation");
+                    };
+
+                    conn.onmessage = function (event) 
+					{		
+					//*********************************************//
+					//****  Web Socket Server ***//
+					//*********************************************//	
+				
+						var rawStr = event.data.toString();  // Split with '@'
+
+						//alert(rawStr);
+						var res = rawStr.split('@');
+						
+						// Connected
+						if(res[0] == "Connected")
+						{
+							document.getElementById("content").innerHTML =  rawStr;
+						}
+						var strtitle1 = ["-","ID Card : ", "TH_Prefix :","TH_Firstname : ","TH_Lastname : ","Sex : ","Birthday : ","EN_Prefix : ","EN_Firstname : ","EN_Lastname : ","Issue : ","Expire : ","Address House No : ","image"]
+						
+						var strtitle2 = ["-","DocumentNo : ","Familyname : ","Givenname : ","Birthday : ","PersonalNo : ","Nationality : ","Sex : ","Dateofexpiry : ","IssueState : ","image"]
+						var img = "";
+						var text = "";
+						var _card = "";
+						
+						/////thaiid
+						
+						if(res[0] == "thaiid") 
+						{
+								img = "1";
+							for (i=1; i<= res.length - 2;i++)
+							{
+								_card += res[i] + "@"; 
+							}
+							
+							for (i = 1; i < res.length-2; i++)
+							{
+								text += strtitle1[i] + res[i] + "<br>";
+								
+							}
+							document.getElementById('img_id_card').src = "data:image/png;base64," + res[13];
+							document.getElementById("content_idcard1").innerHTML = _card.substring(0,_card.length-1);;
+							document.getElementById("content_idcard").innerHTML = text;
+							document.getElementById("chk").style.display = "block"; 
+						}
+						
+						
+								
+							
+							
+				    	/////passport
+							var _pass = "";
+							if(res[0] == "passport")	
+							{
+								img = "2";
+									for (i=1; i<= res.length - 2;i++)
+									{
+										_pass += res[i] + "@"; 
+									}
+								
+								document.getElementById("content_passport1").innerHTML = _pass.substring(0,_pass.length-1);
+								
+									for ( var i = 1; i < res.length-2; i++) 
+									{
+										text += strtitle2[i] + res[i] + "<br>";	
+									}
+						
+								document.getElementById('img_passport').src = "data:image/png;base64," + res[10];
+								document.getElementById("content_passport").innerHTML = text;
+								document.getElementById("content").innerHTML = "Connected";
+							}
+						
+						/////CreateTemplateFingerprint
+							
+							if(res[0] == "CreateTemplateIso")	
+							{
+								img = "3";
+								document.getElementById("p1").innerHTML = "";
+									document.getElementById("Strbase64template").value = res[1]; // template
+									document.getElementById("Strbase64image").value = res[2];  // image fingerprint
+									document.getElementById('img_finger').src = "data:image/png;base64," + res[2];
+                                   	document.getElementById('img_finger').style.display = "block";
+									document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("btnSent7").style.display = "block"; 
+									
+									setTime();
+									
+									
+									
+							}
+							
+							
+							/////SaveTemplate
+							
+							if(res[0] == "SaveTemplate")	
+							{
+								img = "3";
+								if(res[1] == "true")	
+								{
+									document.getElementById('img_finger').src = "data:image/png;base64," + res[2];
+                                   	document.getElementById('img_finger').style.display = "block";
+									document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("p1").innerHTML = "บันทึกสำเร็จ";
+									document.getElementById("p1").style.color = "green";
+								   document.getElementById("btnSent7").style.display = "none"; 
+								   
+								  
+								}
+								if(res[1] == "false")	
+								{
+									document.getElementById('img_finger').src = "data:image/png;base64," + res[2];
+                                   	document.getElementById('img_finger').style.display = "block";
+									document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("p1").innerHTML = "บันทึกไม่สำเร็จ";
+									document.getElementById("p1").style.color = "red";
+								}
+								
+								setTimeout(function(){}, 2000);
+								
+							}
+							
+							
+						/////IdentifyMatchAccess
+							if(res[0] == "IdentifyMatchAccess")	
+							{
+								img = "3";
+								if(res[1] == "true")	
+								{
+								
+									document.getElementById('img_finger').src = "data:image/png;base64," + res[2];
+									document.getElementById('img_finger').style.display = "block";
+									document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("p1").innerHTML = "ผ่านลายนิ้วมือถูกต้อง";
+									document.getElementById("p1").style.color = "green";
+								}
+								if(res[1] == "false")	
+								{
+									document.getElementById('img_finger').src = "data:image/png;base64," + res[2];
+									document.getElementById('img_finger').style.display = "block";
+									document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("p1").innerHTML = "ไม่ผ่านลายนิ้วมือไม่ถูกต้อง !!!";
+									document.getElementById("p1").style.color = "red";
+								}
+								setTimeout(function(){}, 2000);
+								doScanIdentifyMatchAccess();
+									document.getElementById("btnSent7").style.display = "none"; 
+							}
+
+
+						/////VerifyMatchAccess
+							if(res[0] == "VerifyMatchAccess")	
+							{
+								
+							var idcard = document.getElementById("txtidcard").value; // �Ţ�ѵû�ЪҪ�
+								img = "3";
+								if(res[1] == "true")	
+								{
+									document.getElementById('img_finger').src = "data:image/png;base64," + res[2];
+									document.getElementById('img_finger').style.display = "block";
+									document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("p1").innerHTML = "ผ่านลายนิ้วมือถูกต้อง";
+									document.getElementById("p1").style.color = "green";
+								}
+								if(res[1] == "false")	
+								{
+									document.getElementById('img_finger').src = "data:image/png;base64," + res[2];
+									document.getElementById('img_finger').style.display = "block";
+									document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("p1").innerHTML = "ไม่ผ่านลายนิ้วมือไม่ถูกต้อง !!!";
+									document.getElementById("p1").style.color = "red";
+								}
+									if(res[1] == "NotFound")	
+								{
+									document.getElementById('img_finger').src = "data:image/png;base64," + res[2];
+									document.getElementById('img_finger').style.display = "block";
+									document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("p1").innerHTML = "ไม่มีรายชื่อในระบบ !!!";
+									document.getElementById("p1").style.color = "red";
+								}
+								setTimeout(function(){}, 2000);
+									conn.send("VerifyMatchAccess" + "@" + idcard);
+									document.getElementById("btnSent7").style.display = "none"; 
+							}
+
+
+						/////img
+						if(img == "")
+						{
+									document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("img_finger").style.display = "none"; 
+									document.getElementById("btnSent7").style.display = "none"; 
+									document.getElementById("template").style.display = "none"; 
+						}
+						else
+						{
+							      if(img == "1") //thaiid
+									{
+									document.getElementById("chk1").style.display = "block";
+									}
+								if(img == "2")//passport
+									{
+									document.getElementById("chk2").style.display = "block";
+									}
+									if(img == "3")//fingerprint
+									{
+									document.getElementById("img_finger").style.display = "block"; 
+								
+									}
+								
+								
+								
+						}   
+									
+                  };
+
+                    conn.onerror = function (event) {
+						// Web Socket Error
+                        document.getElementById("content").innerHTML = "Web Socket Error";
+                  };
+
+
+                    conn.onclose = function (event) {
+						// Web Socket Closed
+                        document.getElementById("content").innerHTML = "Web Socket Closed";
+						document.getElementById("chk").style.display = "none"; 
+									document.getElementById("chk2").style.display = "none";
+									document.getElementById("img_finger").style.display = "none"; 
+									document.getElementById("btnSent7").style.display = "none"; 
+									document.getElementById("template").style.display = "none"; 
+                    };
+                }
+            }
+			
+	
+			// function send app server
+			function doScan()
+			{	
+				conn.send("thaiidauto");
+				
+			}
+				function doScanpassport()
+			{				
+				 conn.send("passportwithphoto");
+				
+			}
+			function doScanCreateFingerprint()
+			{		
+			document.getElementById("p1").innerHTML = "";
+			     document.getElementById("img_finger").style.display = "none"; 
+				 document.getElementById("p1").innerHTML = "วางลายนิ้วมือบนหัวอ่าน";
+				 document.getElementById("p1").style.color = "blue";
+				 conn.send("CreateTemplateIso");
+				
+			}
+			function doScanSaveTemplate()
+			{		
+			document.getElementById("p1").innerHTML = "";
+				var idcard = document.getElementById("txtidcard").value; // �Ţ�ѵû�ЪҪ�
+				var strtemplate = document.getElementById("Strbase64template").value; //Base64Stringtemplatefingerprint
+				var strimage = document.getElementById("Strbase64image").value; // //Base64Stringimagefingerprint
+				
+			alert('6');
+				if(idcard != ""){
+			
+				 conn.send("SaveTemplate" + "@" + idcard + "@" + strtemplate + "@" + strimage);
+				 }else{
+				 document.getElementById("p1").innerHTML = "ระบุ เลขบัตรประชาชน";
+				 }
+				
+			}
+			
+			function doScanIdentifyMatchAccess()
+			{		
+			document.getElementById("p1").innerHTML = "";
+				document.getElementById("img_finger").style.display = "none"; 
+				document.getElementById("p1").innerHTML = "วางลายนิ้วมือบนหัวอ่าน";
+				 document.getElementById("p1").style.color = "blue";
+				conn.send("IdentifyMatchAccess");
+			}
+			
+			function doScanVerifyMatchAccess()
+			{		
+				document.getElementById("p1").innerHTML = "";
+				var idcard = document.getElementById("txtidcard").value; // �Ţ�ѵû�ЪҪ�
+				document.getElementById("img_finger").style.display = "none"; 
+				
+				//alert(idcard);
+				if(idcard != ""){
+						document.getElementById("p1").innerHTML = "วางลายนิ้วมือบนหัวอ่าน";
+						 document.getElementById("p1").style.color = "blue";
+						  conn.send("VerifyMatchAccess" + "@" + idcard);
+				}else{
+				 document.getElementById("p1").innerHTML = "เลขบัตรประชาชน";
+				 document.getElementById("p1").style.color = "red";
+				}
+			}
+			
+			
+			function setTime() {
+					  setTimeout(function(){
+					  conn.send("CreateTemplateIso"); // �ҧ�����������
+					  }, 3000);
+					}
+			
+				function Clear()
+				{	document.getElementById("p1").innerHTML = "";
+					document.getElementById("img_finger").style.display = "none"; 
+				    document.getElementById("content_idcard1").innerHTML = "";
+				    document.getElementById("content_idcard").innerHTML = "";
+					document.getElementById("content_passport1").innerHTML = "";
+					document.getElementById("txtidcard").innerHTML = "";
+				    document.getElementById("content_passport").innerHTML = "";
+					document.getElementById("chk").style.display = "none"; 
+					document.getElementById("chk2").style.display = "none";
+					
+					
+				}
+
+            $(document).ready(function () {
+                conn = {}, window.WebSocket = window.WebSocket || window.MozWebSocket;
+
+                openConnection();
+            });
+        </script>
+        
+       
+    </head>
+    
+<body>
+
+       <br/>
+        <div id="content">          
+</div>
+        <br/>
+<input type="button" name="btnSent2" id="btnSent2" style="display:none;" value="ScanIDcard" onClick="doScan();"> &nbsp;
+<input type="button" name="btnSent3" id="btnSent3"  style="display:none;"  value="ScanPassport" onClick="doScanpassport();"> &nbsp;
+
+
+<input type="button" name="btnSent5" id="btnSent5" value="Clear" style="display:none;"   onClick="Clear();">
+ 
+ <br/>
+<label for="male">IDCARD </label> &nbsp;
+<input type="Text" name="txtidcard" id="txtidcard"   value="" ">
+
+
+<input type="button" name="btnSent4" id="btnSent4"   value="CreateFingerprint" onClick="doScanCreateFingerprint();">  &nbsp; 
+<input type="button" name="btnSent6" id="btnSent6"   value="Identify" onClick="doScanIdentifyMatchAccess();"> &nbsp;
+<input type="button" name="btnSent8" id="btnSent8"   value="Verify" onClick="doScanVerifyMatchAccess();"> 
+<p id="p1"></p>
+<img id="img_finger"   width="120" height="150"/>
+  <br/>
+  <input type="button" name="btnSent7" id="btnSent7"   value="Save" onClick="doScanSaveTemplate();"> 
+  
+  <br/> <br/>
+
+<div id="template">  
+     <input type="Text" name="Strbase64template" id="Strbase64template"   value="" ">
+	 <input type="Text" name="Strbase64image" id="Strbase64image"   value="" ">
+</div>
+
+
+ <div id="content_idcard1">          
+</div>
+ <div>   
+ 	<table>
+    	<tr>
+        	<td>
+            	 <p id="content_idcard"></p> 
+            </td>
+            <td>
+            	 
+            </td>
+               <td id="chk"><br>
+              
+               <img id="img_id_card"   width="100" height="100"/>
+            </td>
+        </tr>
+        <tr>
+        <td>
+            	<div>     &nbsp;     
+        </div>
+        
+             <div id="content_passport1">          
+        </div>
+
+            </td>
+        </tr>
+            	<tr>
+        	<td>
+            	 <p id="content_passport"></p> 
+            </td>
+                <td>
+            	 
+            </td>
+               <td id="chk2"><br>
+             
+                <img id="img_passport"   width="120" height="100"/>
+            
+            </td>
+        </tr>
+<tr>
+<td>
+<div>     &nbsp;     
+        </div>
+  
+</td>
+</tr>
+    </table>
+
+</div>
+</body>
+
+</html>
